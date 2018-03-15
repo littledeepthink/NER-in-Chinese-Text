@@ -1,4 +1,4 @@
-# NER: Chinese named entity recognition in Keras
+# NER: Chinese Named Entity Recognition in Keras
 
 Model1：Character_embedding-Based BiLSTM-CRF. 
 Model2：On the basis of model1. Extract n_gram feature from word embedding as auxiliary feature, using Conv1D.  
