@@ -1,3 +1,13 @@
 # NER
 
-»ùÓÚÖĞÎÄ×Ö´ÊµÄÃüÃûÊµÌåÊ¶±ğ
+Chinese named entity recognition in Keras
+
+Model1ï¼šCharacter_embedding-Based BiLSTM-CRF. 
+Model2ï¼šOn the basis of model1. Extract n_gram feature from word embedding as auxiliary feature, using Conv1D.  
+
+æ³¨ï¼šå…ˆè¿è¡Œpreprocess.pyå’Œutils.pyä»¥ç”Ÿæˆtrainã€devå’Œtestã€‚
+
+References:
+1.End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF. Xuezhe Ma, Eduard Hovy
+2.Bidirectional LSTM-CRF Models for Sequence Tagging. Zhiheng Huang, Wei Xu, Kai Yu.
+3.Neural Architectures for Named Entity Recognition. Guillaume Lample et al.
