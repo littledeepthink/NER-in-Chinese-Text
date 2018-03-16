@@ -1,7 +1,7 @@
 # coding=utf-8
 from keras.models import Sequential
 from keras.layers import Masking, Embedding, Bidirectional, LSTM, Dropout,\
-                         TimeDistributed
+                         TimeDistributed, GRU
 from crf_layer import CRF
 
 class BiLSTM_CRF():
@@ -29,10 +29,11 @@ class BiLSTM_CRF():
                                  output_dim=self.n_embed,
                                  input_length=self.n_input,
                                  weights=[self.embedding_mat],
-                                 mask_zero=True))
+                                 mask_zero=True,
+                                 trainable=True))
         self.model.add(Dropout(self.keep_prob))
 
-        self.model.add(Bidirectional( LSTM(self.n_lstm, return_sequences=True,
+        self.model.add(Bidirectional( GRU(self.n_lstm, return_sequences=True,
                                            dropout=self.keep_prob_lstm,
                                            recurrent_dropout=self.keep_prob_lstm)
                                      ))
