@@ -3,7 +3,7 @@ import numpy as np
 from bilstm_crf_add_word import BiLSTM_CRF
 from collections import defaultdict
 import preprocess as p
-from keras.optimizers import Adam
+from keras.optimizers import Adam, Nadam
 
 def get_X_orig(X_data, index2char):
     X_orig = []
@@ -42,18 +42,20 @@ def get_entity(X_data, y_data):
                 d[l[2:]][-1] += c
                 entity_name += c
             elif (l[0] == 'I') & (len(entity_name) > 0):
-                d[l[2:]][-1] += c
+                try:
+                    d[l[2:]][-1] += c
+                except IndexError:
+                    d[l[2:]].append(c)
             elif l == 'O':
                 entity_name = ''
         entity_list.append(d)
 
     return entity_list
 
-def evaluation(pred_entity, true_entity):
+def micro_evaluation(pred_entity, true_entity):
+    # Weight all examples equally,favouring the performance on common classes. 
     n_example = len(pred_entity)
-    t_pos = []
-    pred = []
-    true = []
+    t_pos, true, pred = [], [], []
     for n in range(n_example):
         et_p = pred_entity[n]
         et_t = true_entity[n]
@@ -70,11 +72,36 @@ def evaluation(pred_entity, true_entity):
 
     return round(precision, 4), round(recall, 4), round(f1, 4)
 
+def macro_evaluation(pred_entity, true_entity):
+    # Weight all classes equally. 
+    label = ['PER', 'ORG', 'LOC']
+    n_example = len(pred_entity)
+    precision, recall, f1 = [], [], []
+    for l in label:
+        t_pos, true, pred = [], [], []
+        for n in range(n_example):
+            et_p = pred_entity[n]
+            et_t = true_entity[n]
+            print('the prediction is', et_p.items(), '\n',
+                  'the true is', et_t.items())
+            t_pos.extend([len(set(et_p[l]) & set(et_t[l]))
+                          if l in (et_p.keys() & et_t.keys()) else 0])
+            true.extend([len(et_t[l]) if l in et_t.keys() else 0])
+            pred.extend([len(et_p[l]) if l in et_p.keys() else 0])
+        precision.append(sum(t_pos) / sum(pred) + 1e-8)
+        recall.append(sum(t_pos) / sum(true) + 1e-8)
+        f1.append(2 / (1 / precision[-1] + 1 / recall[-1]))
+    avg_precision = np.mean(precision)
+    avg_recall = np.mean(recall)
+    avg_f1 = np.mean(f1)
+    return round(avg_precision, 4), round(avg_recall, 4), round(avg_f1, 4)
+
 
 if __name__ == '__main__':
 
     char_embedding_mat = np.load('data/char_embedding_matrix.npy')
-    word_embedding_mat = np.load('data/word_embedding_matrix.npy')
+    # word_embedding_mat = np.load('data/word_embedding_matrix.npy')
+    word_embedding_mat = np.random.randn(157142, 200)
 
     X_test = np.load('data/X_test.npy')
     test_add = np.load('data/word_test_add.npy') # add word_embedding
@@ -82,15 +109,17 @@ if __name__ == '__main__':
     y_test = np.load('data/y_test.npy')
 
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
-    ## loss:15.60081 ; precision: recall: F1:
+    # nadam = Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
+    
     ner_model = BiLSTM_CRF(n_input_char=200, char_embedding_mat=char_embedding_mat,
-                           n_input_word=200, word_embedding_mat=word_embedding_mat[:, :200],
-                           keep_prob=0.5, n_lstm=100, keep_prob_lstm=0.8, n_entity=7,
-                           optimizer=adam, batch_size=16, epochs=500)
-    model_file = 'checkpoints/bilstm_crf_add_word_15.60081.hdf5'
-    ner_model.model.load_weights(model_file)
+                           n_input_word=200, word_embedding_mat=word_embedding_mat,
+                           keep_prob=0.7, n_lstm=256, keep_prob_lstm=0.6, n_entity=7,
+                           optimizer=adam, batch_size=32, epochs=500,
+                           n_filter=128, kernel_size=3)
+    model_file = 'checkpoints/bilstm_crf_add_word_weights_best.hdf5'
+    ner_model.model2.load_weights(model_file)
 
-    y_pred = ner_model.model.predict([X_test[:, :], test_add[:, :]])
+    y_pred = ner_model.model2.predict([X_test[:, :], test_add[:, :]])
     # print(pred.shape) # (4635, 574, 7)
 
     char2vec, n_char, n_embed, char2index = p.get_char2object()
@@ -102,5 +131,5 @@ if __name__ == '__main__':
     # print(X_list)
     pred_entity, true_entity = get_entity(X_list, pred_list), get_entity(X_list, true_list)
     # print(pred_entity, true_entity)
-    precision, recall, f1 = evaluation(pred_entity, true_entity)
+    precision, recall, f1 = macro_evaluation(pred_entity, true_entity)
     print(precision, recall, f1)
