@@ -5,7 +5,7 @@ Model2：On the basis of model1. Extract n_gram feature from word embedding as a
 
 Ps：Run preprocess.py and utils.py firstly, to get train、dev and test data.
 
-References:
+References:  
 1.End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF. Xuezhe Ma, Eduard Hovy  
-2.Bidirectional LSTM-CRF Models for Sequence Tagging. Zhiheng Huang, Wei Xu, Kai Yu. 
+2.Bidirectional LSTM-CRF Models for Sequence Tagging. Zhiheng Huang, Wei Xu, Kai Yu.  
 3.Neural Architectures for Named Entity Recognition. Guillaume Lample et al. 
