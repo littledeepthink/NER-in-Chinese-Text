@@ -3,8 +3,9 @@
 Model1：Character_embedding-Based BiLSTM-CRF.  
 Model2：On the basis of model1. Extract n_gram feature from word embedding as auxiliary feature, using Conv1D.  
 
-Ps：Run preprocess.py and utils.py firstly, to get processed train/dev/test data and pre-trained char/word embedding matrix.   
-    The file 'appendix_···.py' is writed by means of 'BosonNLP'.
+Ps：    
+Run preprocess.py and utils.py firstly, to get processed train/dev/test data and pre-trained char/word embedding matrix.   
+The file 'appendix_···.py' is writed by means of 'BosonNLP'.
 
 References:  
 1.End-to-end Sequence Labeling via Bi-directional LSTM-CNNs-CRF. Xuezhe Ma, Eduard Hovy  
